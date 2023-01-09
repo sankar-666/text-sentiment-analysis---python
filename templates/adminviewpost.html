@@ -1,0 +1,35 @@
+{% include 'adminheader.html' %}
+
+
+<center>
+<h1>View Post</h1>
+
+<table>
+    <tr>
+        <th>User</th>
+        <th>Place</th>
+        <th>Phone</th>
+        <th>Post</th>
+        <th>Path</th>
+        <th>date</th>
+        <th>Status</th>
+    </tr>
+    {% for row in data['res'] %}
+    <tr>
+        <td>{{ row['fname'] }}{{ row['lname'] }}</td>
+        <td>{{ row['place'] }}</td>
+        <td>{{ row['phone'] }}</td>
+        <td>{{ row['post'] }}</td>
+        <td>{{ row['path'] }}</td>
+        <td>{{ row['date'] }}</td>
+        <td>{{ row['status'] }}</td>
+        <td><a href="adminviewcomments?pid={{ row['post_id'] }}">View comments</a></td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+</center>
+
+
+{% include 'footer.html' %}

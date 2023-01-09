@@ -1,0 +1,28 @@
+{% include 'adminheader.html' %}
+
+
+<center>
+<h1>View Users</h1>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Place</th>
+        <th>Phone</th>
+        <th>Email</th>
+    </tr>
+    {% for row in data['res'] %}
+    <tr>
+        <td>{{ row['fname'] }}{{ row['lname'] }}</td>
+        <td>{{ row['place'] }}</td>
+        <td>{{ row['phone'] }}</td>
+        <td>{{ row['email'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+</center>
+
+
+{% include 'footer.html' %}

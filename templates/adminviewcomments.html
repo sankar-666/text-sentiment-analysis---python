@@ -1,0 +1,27 @@
+{% include 'adminheader.html' %}
+
+
+<center>
+<h1>Comments</h1>
+
+<table>
+    <tr>
+        <th>index</th>
+        <th>Comment</th>
+        <th>out</th>
+
+    </tr>
+    {% for row in data['res'] %}
+    <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ row['comment'] }}</td>
+        <td>{{ row['out'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+</center>
+
+
+{% include 'footer.html' %}
