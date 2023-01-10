@@ -15,4 +15,4 @@ app.register_blueprint(public)
 
 
 
-app.run(debug=True,port=5027)
+app.run(debug=True,port=5027,host="0.0.0.0")
