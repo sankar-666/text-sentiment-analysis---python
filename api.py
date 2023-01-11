@@ -149,3 +149,95 @@ def deletemypost():
     
     data['method']="deletemypost"
     return str(data)
+
+
+@api.route('/editpost')
+def editpost():
+    data={}
+    pid=request.args['post_id']
+    post=request.args['post']
+    q="update post set post='%s' where post_id='%s'"%(post,pid)
+    update(q)
+    
+    data['status']="success"
+    return str(data)
+
+
+@api.route('/viewusers')
+def viewusers():
+    data={}
+    lid=request.args['log_id']
+    q="select * from user where user_id <> (select user_id from user where login_id='%s' )"%(lid)
+    res=select(q)
+    if res:
+        data['data']=res
+        data['status']="success"
+    else:
+        data['status']="failed"
+    data['method']="viewusers"
+    return str(data)
+
+
+
+
+@api.route("/chatdetail")
+def chatdetail():
+	sid=request.args['sender_id']
+	rid=request.args['receiver_id']
+	
+	data={}
+	q="select * from chat where (sender_id='%s' and receiver_id='%s') or (sender_id='%s' and receiver_id='%s') group by chat_id "%(sid,rid,rid,sid)
+	
+	res=select(q)
+	if res:
+		data['status']="success"
+		data['data']=res
+	else:
+		
+		data['status']="failed"
+	data['method']='chatdetail'
+	
+	return str(data)
+
+@api.route("/chat")
+def chat():
+	data={}
+	sid=request.args['sender_id']
+	rid=request.args['receiver_id']
+	det=request.args['details']
+	
+	
+	q="insert into chat values(null,'%s','%s','%s',curdate(),'pending')"%(sid,rid,det)
+	insert(q)
+	data['status']='success'
+	data['method']='chat'
+	return str(data)
+
+
+@api.route('/viewcomp')
+def viewcomp():
+    data={}
+    lid=request.args['log_id']
+    q="select * from complaint where user_id= (select user_id from user where login_id='%s' )"%(lid)
+    res=select(q)
+    if res:
+        data['data']=res
+        data['status']="success"
+    else:
+        data['status']="failed"
+    data['method']="viewcomp"
+    return str(data)
+
+
+@api.route('/User_Complaint')
+def User_Complaint():
+    data={}
+    lid=request.args['log_id']
+    complaints=request.args['complaints']
+    q="insert into complaint values (null,(select user_id from user where login_id='%s' ),'%s','pending',curdate() )"%(lid,complaints)
+    insert(q)
+
+    data['status']="success"
+    
+    data['method']="User_Complaint"
+    return str(data)
