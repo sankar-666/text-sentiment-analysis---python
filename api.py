@@ -1,5 +1,6 @@
 from flask import *
 from database import *
+from emotionOfSentences import *
 import uuid
 
 api=Blueprint('api',__name__)
@@ -66,6 +67,7 @@ def viewallposts():
 def viewamyposts():
     data={}
     lid=request.args['lid']
+   
     q='select * from post inner join user using (user_id) where user_id=(select user_id from user where login_id="%s")'%(lid)
     res=select(q)
     if res:
@@ -115,9 +117,14 @@ def addcommentperpost():
     data={}
     pid=request.args['pid']
     comment=request.args['comment']
-
-    q="insert into comment values(null,'%s','%s','pending')"%(pid,comment)
-    insert(q)
+    # print(type(comment))
+    out=predictValueFromText(comment)
+    if out == "":
+        q="insert into comment values(null,'%s','%s','No output')"%(pid,comment)
+        insert(q)
+    else:
+        q="insert into comment values(null,'%s','%s','%s')"%(pid,comment,out)
+        insert(q)
     data['status']="success"
     data['method']="addcommentperpost"
     return str(data)
@@ -201,17 +208,20 @@ def chatdetail():
 
 @api.route("/chat")
 def chat():
-	data={}
-	sid=request.args['sender_id']
-	rid=request.args['receiver_id']
-	det=request.args['details']
-	
-	
-	q="insert into chat values(null,'%s','%s','%s',curdate(),'pending')"%(sid,rid,det)
-	insert(q)
-	data['status']='success'
-	data['method']='chat'
-	return str(data)
+    data={}
+    sid=request.args['sender_id']
+    rid=request.args['receiver_id']
+    det=request.args['details']
+    out=predictValueFromText(det)
+    if out == "":
+        q="insert into chat values(null,'%s','%s','%s',curdate(),'No output',curtime())"%(sid,rid,det)
+        insert(q)
+    else:  
+        q="insert into chat values(null,'%s','%s','%s',curdate(),'%s',curtime())"%(sid,rid,det,out) 
+        insert(q)
+    data['status']='success'
+    data['method']='chat'
+    return str(data)
 
 
 @api.route('/viewcomp')
@@ -239,5 +249,164 @@ def User_Complaint():
 
     data['status']="success"
     
-    data['method']="User_Complaint"
+    data['method']="User_Complaint" 
     return str(data)
+
+
+
+@api.route('/mycommentgraph')
+def mycommentgraph():
+    data={}
+    pid=request.args['pid']
+    joy='joy'+'%'
+    sadness='sadness'+'%'
+    shame='shame'+'%'
+    noout='No output'+'%'
+    q="SELECT COUNT(`emotion`) AS cout FROM `comment` WHERE post_id='%s' AND `emotion` LIKE '%s' "%(pid,joy)
+    print(q)
+    joycount=select(q)[0]['cout']
+    q="SELECT COUNT(`emotion`) AS cout FROM `comment` WHERE post_id='%s' AND `emotion` LIKE '%s' "%(pid,sadness)
+    print(q)
+    sadcount=select(q)[0]['cout']
+    q="SELECT COUNT(`emotion`) AS cout FROM `comment` WHERE post_id='%s' AND `emotion` LIKE '%s' "%(pid,shame)
+    print(q)
+    shamecount=select(q)[0]['cout']
+    q="SELECT COUNT(`emotion`) AS cout FROM `comment` WHERE post_id='%s' AND `emotion` LIKE '%s' "%(pid,noout)
+    print(q)
+    nocount=select(q)[0]['cout']
+
+    if joycount == 0:
+        joyPercentage = 0
+    else:
+        joyPercentage = (joycount / (joycount+sadcount+shamecount+nocount) ) * 100
+    
+    if sadcount == 0:
+        sadPercentage = 0
+    else:
+        sadPercentage = (sadcount / (joycount+sadcount+shamecount+nocount) ) * 100
+        
+    if shamecount == 0:
+        shamePercentage = 0
+    else:
+        shamePercentage = (shamecount / (joycount+sadcount+shamecount+nocount) ) * 100
+    
+    if nocount == 0:
+        novaluePercentage = 0
+    else:
+        novaluePercentage = (nocount / (joycount+sadcount+shamecount+nocount) ) * 100
+    
+     
+    print(joycount,sadcount,shamecount,nocount) 
+    
+    q="select * from comment where post_id='%s'"%(pid)
+    res=select(q)
+    
+    if res:
+        data['data']=res
+        data['status']="success"
+        data['joyPercentage']=joycount
+        data['sadPercentage']=sadcount
+        data['shamePercentage']=shamecount
+        data['novaluePercentage']=nocount
+        print("no count,...",nocount) 
+    else:
+        data['status']="failed"
+    data['method']="mycommentgraph"
+    return str(data)
+
+
+from datetime import datetime, timedelta
+
+
+@api.route('/chatemotion')
+def chatemotion():
+    data={}
+    sid=request.args['sid']
+    rid=request.args['rid']
+    joy='joy'+'%'
+    sadness='sadness'+'%'
+    shame='shame'+'%'
+    noout='No output'+'%'
+
+    
+    # Get the current date and time
+    now = datetime.now()
+
+    # Subtract 24 hours from the current time
+    last_24_hours = datetime.now() - timedelta(hours=24)
+    print(last_24_hours)
+    print("now...........................",str(datetime.now())[0:19])
+    destructuretime = str(last_24_hours)[0:19]
+    print("24 before time..........",destructuretime)
+    q="select curtime()"  
+    curDate = select(q)
+    print("date ........................",curDate) 
+
+    q="select * from chat where (sender_id='%s' and receiver_id='%s') and   date  between '%s' and '%s' "%(sid,rid,destructuretime,str(datetime.now())[0:19])
+    print(q) 
+    thwentyFourTime = select(q)
+    print(thwentyFourTime) 
+
+    if thwentyFourTime:
+        q="select count(emotion) as count from chat where (sender_id='%s' and receiver_id='%s')  and `emotion` LIKE '%s' and date  between '%s' and '%s'  "%(sid,rid,joy,destructuretime,str(datetime.now())[0:19])
+        print(q)
+        out=select(q)[0]['count'] 
+        joycount = out
+        q="select count(emotion) as count from chat where (sender_id='%s' and receiver_id='%s')  and `emotion` LIKE '%s' and date  between '%s' and '%s'  "%(sid,rid,sadness,destructuretime,str(datetime.now())[0:19])
+        sadcount = select(q)[0]['count']
+        q="select count(emotion) as count from chat where (sender_id='%s' and receiver_id='%s')  and `emotion` LIKE '%s' and date  between '%s' and '%s'  "%(sid,rid,shame,destructuretime,str(datetime.now())[0:19])
+        shamecount = select(q)[0]['count']
+        q="select count(emotion) as count from chat where (sender_id='%s' and receiver_id='%s')  and `emotion` LIKE '%s' and date  between '%s' and '%s'  "%(sid,rid,noout,destructuretime,str(datetime.now())[0:19])
+        novalcount = select(q)[0]['count']
+    
+    
+        q="select count(emotion) as count from chat where (sender_id='%s' and receiver_id='%s')  and `emotion` LIKE '%s' and date  between '%s' and '%s'  "%(rid,sid,joy,destructuretime,str(datetime.now())[0:19])
+        herjoycount = select(q)[0]['count']
+        q="select count(emotion) as count from chat where (sender_id='%s' and receiver_id='%s')  and `emotion` LIKE '%s' and date  between '%s' and '%s'  "%(rid,sid,sadness,destructuretime,str(datetime.now())[0:19])
+        hersadcount = select(q)[0]['count']
+        q="select count(emotion) as count from chat where (sender_id='%s' and receiver_id='%s')  and `emotion` LIKE '%s' and date  between '%s' and '%s'  "%(rid,sid,shame,destructuretime,str(datetime.now())[0:19])
+        hershamecount = select(q)[0]['count']
+        q="select count(emotion) as count from chat where (sender_id='%s' and receiver_id='%s')  and `emotion` LIKE '%s' and date  between '%s' and '%s'  "%(rid,sid,noout,destructuretime,str(datetime.now())[0:19])
+        hernovalcount = select(q)[0]['count'] 
+
+        
+
+
+        print(joycount,sadcount,shamecount,novalcount)
+        print(herjoycount,hersadcount,hershamecount,hernovalcount)
+
+        mycount = max(joycount,sadcount,shamecount,novalcount)
+        print("My count: ",mycount)
+
+        if mycount == joycount:
+            data['myemotion'] = "Happy"
+        elif mycount == sadcount:
+            data['myemotion'] = "Sad"
+        elif mycount == shamecount: 
+            data['myemotion'] = " Shame"
+        elif mycount == novalcount:
+            data['myemotion'] = "No Specific Emotion"
+
+        print(data['myemotion'])
+        
+        
+        hercount = max(herjoycount,hersadcount,hershamecount,hernovalcount)
+        print("her count: ",hercount)
+
+        if hercount == herjoycount:
+            data['heremotion'] = "Happy" 
+        elif hercount == hersadcount:
+            data['heremotion'] = "Sad"
+        elif hercount == hershamecount: 
+            data['heremotion'] = "Shame"
+        elif hercount == hernovalcount:
+            data['heremotion'] = "No Specific Emotion"
+
+        print(data['heremotion'])
+
+        data['status']="success"
+    else:
+        data['status']="failed"
+    
+    data['method']="chatemotion" 
+    return str(data) 

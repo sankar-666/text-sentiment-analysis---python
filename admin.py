@@ -36,7 +36,7 @@ def adminviewcomments():
 @admin.route('/adminviewcomplaint',methods=['get','post'])
 def adminviewcomplaint():
     data={}
-    q="select * from customer inner join complaint using (customer_id)"
+    q="select * from user inner join complaint using (user_id)"
     data['res']=select(q)
 
     if 'action' in request.args:
@@ -53,6 +53,6 @@ def adminviewcomplaint():
 
             q="update complaint set reply='%s' where complaint_id='%s'"%(reply,cid)
             update(q)
-            return redirect(url_for("admin.adminviewcomplaints"))
+            return redirect(url_for("admin.adminviewcomplaint"))
     return render_template('adminviewcomplaint.html',data=data)
 
