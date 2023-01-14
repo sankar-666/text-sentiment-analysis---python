@@ -4,13 +4,13 @@
 <center>
 <h1>View Post</h1>
 
-<table>
+<table class="table">
     <tr>
         <th>User</th>
         <th>Place</th>
         <th>Phone</th>
         <th>Post</th>
-        <th>Path</th>
+        <th>image</th>
         <th>date</th>
         <th>Status</th>
     </tr>
@@ -20,10 +20,10 @@
         <td>{{ row['place'] }}</td>
         <td>{{ row['phone'] }}</td>
         <td>{{ row['post'] }}</td>
-        <td>{{ row['path'] }}</td>
+        <td><img src="{{ row['path'] }}" width="60" height="120" alt=""></td>
         <td>{{ row['date'] }}</td>
         <td>{{ row['status'] }}</td>
-        <td><a href="adminviewcomments?pid={{ row['post_id'] }}">View comments</a></td>
+        <td><a class="btn btn-success" href="adminviewcomments?pid={{ row['post_id'] }}">View comments</a></td>
     </tr>
     {% endfor %}
 </table>
