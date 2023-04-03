@@ -1,6 +1,7 @@
 from flask import *
 from database import *
 from emotionOfSentences import *
+from test import *
 import uuid
 
 api=Blueprint('api',__name__)
@@ -86,9 +87,9 @@ def addpost():
     lid=request.form['lid']
     img=request.files['image']
     uuids=str(uuid.uuid4())
-    path="D:/Projects/College Projects/Viswajyothi Btech/Text Sentiment Analysis/web/static/uploads/"+uuids+img.filename
+    path="static/uploads/"+uuids+img.filename
     img.save(path)
-    paths="/static/uploads/"+uuids+img.filename
+    paths="static/uploads/"+uuids+img.filename
     
     q="insert into post values (null,(select user_id from user where login_id='%s'),'%s','%s',curdate(),'pending')"%(lid,post,paths)
     insert(q)
@@ -119,11 +120,13 @@ def addcommentperpost():
     comment=request.args['comment']
     # print(type(comment))
     out=predictValueFromText(comment)
+    bert_out=preddictEmotion(comment)
+    print(f"ssssssssssssssssssssssssssssssss{bert_out}")
     if out == "":
-        q="insert into comment values(null,'%s','%s','No output')"%(pid,comment)
+        q="insert into comment values(null,'%s','%s','No output','%s')"%(pid,comment,bert_out)
         insert(q)
     else:
-        q="insert into comment values(null,'%s','%s','%s')"%(pid,comment,out)
+        q="insert into comment values(null,'%s','%s','%s','%s')"%(pid,comment,out,bert_out)
         insert(q)
     data['status']="success"
     data['method']="addcommentperpost"

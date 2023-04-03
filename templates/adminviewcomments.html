@@ -4,18 +4,20 @@
 <center>
 <h1>Comments</h1>
 
-<table class="table">
+<table class="table" style="width: 1200px;">
     <tr>
         <th>index</th>
         <th>Comment</th>
-        <th>out</th>
+        <th>Emotion</th>
+        <th>Bert Output</th>
 
     </tr>
     {% for row in data['res'] %}
     <tr>
         <td>{{ loop.index }}</td>
         <td>{{ row['comment'] }}</td>
-        <td>{{ row['out'] }}</td>
+        <td>{{ row['emotion'] }}</td>
+        <td>{{ row['bert_emotion'] }}</td>
     </tr>
     {% endfor %}
 </table>
